@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# --- local pipeline state (SQLite) ---
+*.db
+lawgic_state.db
+
+# --- Node / Electron ---
+node_modules/
+dist/
+out/
+build/
+
+# --- secrets & local config (NEVER commit keys) ---
+.env
+.env.*
+!.env.example
+settings.json
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
