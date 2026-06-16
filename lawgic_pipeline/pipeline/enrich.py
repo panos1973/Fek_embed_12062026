@@ -1,38 +1,88 @@
-"""enrich.py — classification + LLM enrichment.
+"""enrich.py — domain classification + LLM enrichment.
 
-Domain via the cited-code signal is REAL (deterministic, high precision).
-Summary/keywords/EUROVOC via the configured LLM (Claude / DeepSeek / OpenAI).
+Domain classification is deterministic and multi-signal:
+  1. cited-code / framework-law signal (highest precision, matched on raw text)
+  2. Greek domain-keyword signal (recall aid, matched on accent-folded text)
+Both feed legal_domain (multi-label). legal_domain then seeds a coarse Ραπτάρχης
+ΔΚΝ label in domain_dkn as a deterministic baseline; enrich_llm refines
+domain_dkn/eurovoc and writes summary/keywords via the configured LLM. A trained
+GLC/Raptarchis47k classifier can later replace the keyword signal.
 """
 from __future__ import annotations
+import json
 import re
 from models import Law
+from normalize import fold_for_bm25
+import llm
 
-# cited-code / framework-law -> domain (highest-precision signal)
+# 1) cited code / framework law -> domain (raw text; names/numbers are specific)
 CODE_DOMAIN = {
     r"Ποινικ\w+ Κώδικ": "criminal",
-    r"Κώδικα Ποινικής Δικονομίας": "criminal_procedure",
+    r"Κώδικ\w* Ποινικής Δικονομίας": "criminal_procedure",
     r"Αστικ\w+ Κώδικ": "civil",
-    r"Κώδικα Πολιτικής Δικονομίας": "civil_procedure",
-    r"4808/2021|Εργατικ": "labor",
-    r"Κώδικα Φορολογ|ΦΠΑ|4172/2013": "tax",
-    r"4412/2016": "public_procurement",
+    r"Κώδικ\w* Πολιτικής Δικονομίας": "civil_procedure",
+    r"Κώδικ\w* Διοικητικής Δικονομίας": "administrative_procedure",
+    r"4808/2021|Κώδικ\w* Εργατ": "labor",
+    r"Κώδικ\w* Φορολογ|ΦΠΑ|4172/2013|4174/2013|2238/1994": "tax",
+    r"4412/2016|4413/2016": "public_procurement",
     r"4624/2019|2016/679|GDPR": "data_protection",
-    r"4548/2018|4072/2012": "corporate",
+    r"4548/2018|4072/2012|2190/1920": "corporate",
+    r"Υπαλληλικ\w+ Κώδικ|3528/2007": "administrative",
 }
+
+# 2) domain keywords (accent-folded text); kept specific to limit false positives
+DOMAIN_KEYWORDS = {
+    "criminal": r"εγκλημ|αδικημ|καθειρξ|φυλακισ|ποινικ\w* ευθυν",
+    "civil": r"ενοχ|εμπραγματ|κληρονομ|μισθωσ|κυριοτητ",
+    "labor": r"εργαζομεν|εργοδοτ|μισθωτ|μισθοδοσ|συλλογικ\w* συμβασ",
+    "tax": r"φορολογ|φπα|τελωνε",
+    "public_procurement": r"δημοσι\w* συμβασ|διαγωνισμ|αναθετουσ αρχ",
+    "data_protection": r"προσωπικ\w* δεδομεν|υπευθυν\w* επεξεργασ",
+    "corporate": r"ανωνυμ\w* εταιρ|μετοχ|διοικητικ\w* συμβουλι",
+    "social_security": r"ασφαλιστικ|συνταξ|εφκα",
+    "environment": r"περιβαλλον|αποβλητ|ρυπανσ",
+    "health": r"νοσοκομ|φαρμακ|ασθεν",
+    "education": r"εκπαιδευσ|πανεπιστημ|φοιτητ",
+    "administrative": r"διοικητικ\w* πραξ|δημοσι\w* διοικησ",
+}
+
+# coarse legal_domain -> Ραπτάρχης ΔΚΝ subject label (deterministic baseline)
+DKN_LABELS = {
+    "criminal": "Ποινικό Δίκαιο", "criminal_procedure": "Ποινική Δικονομία",
+    "civil": "Αστικό Δίκαιο", "civil_procedure": "Πολιτική Δικονομία",
+    "administrative": "Διοικητικό Δίκαιο", "administrative_procedure": "Διοικητική Δικονομία",
+    "labor": "Εργατικό Δίκαιο", "tax": "Φορολογικό Δίκαιο",
+    "public_procurement": "Δημόσιες Συμβάσεις", "data_protection": "Προστασία Δεδομένων",
+    "corporate": "Εταιρικό Δίκαιο", "social_security": "Δίκαιο Κοινωνικής Ασφάλισης",
+    "environment": "Περιβαλλοντικό Δίκαιο", "health": "Δίκαιο Υγείας",
+    "education": "Εκπαιδευτική Νομοθεσία",
+}
+
+_CODE_RE = [(re.compile(pat), dom) for pat, dom in CODE_DOMAIN.items()]
+_KW_RE = [(re.compile(pat), dom) for dom, pat in DOMAIN_KEYWORDS.items()]
 
 
 def classify_domain(law: Law) -> Law:
+    """Deterministic multi-label legal_domain + a baseline domain_dkn label."""
+    title_raw = law.title or ""
+    title_folded = fold_for_bm25(title_raw)
     for p in law.provisions:
-        hay = f"{law.title} {p.text_in_force}"
-        for pat, dom in CODE_DOMAIN.items():
-            if re.search(pat, hay):
-                if dom not in p.legal_domain:
-                    p.legal_domain.append(dom)
+        raw = f"{title_raw} {p.text_in_force}"
+        folded = f"{title_folded} {fold_for_bm25(p.text_in_force)}"
+        domains: list[str] = []
+        for rx, dom in _CODE_RE:
+            if dom not in domains and rx.search(raw):
+                domains.append(dom)
+        for rx, dom in _KW_RE:
+            if dom not in domains and rx.search(folded):
+                domains.append(dom)
+        for dom in domains:
+            if dom not in p.legal_domain:
+                p.legal_domain.append(dom)
+            label = DKN_LABELS.get(dom)
+            if label and label not in p.domain_dkn:
+                p.domain_dkn.append(label)
     return law
-
-
-import json
-import llm
 
 # STABLE prefix — byte-identical across every call so the provider caches it and
 # bills subsequent calls at the cache-hit rate. Only the provision text varies.

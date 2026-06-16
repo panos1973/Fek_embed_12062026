@@ -26,7 +26,8 @@ placeholder canonical_id that would collide.
 REAL & working:  config, state (SQLite), models + canonical IDs + citation parser,
                  normalize, voyage embed, weaviate loader (tenant-aware, idempotent,
                  *_stemmed Greek-Snowball BM25 fields + display/filter metadata),
-                 orchestrator spine, CLI, cited-code domain classifier, enrich_llm,
+                 orchestrator spine, CLI, multi-signal domain classifier (cited-code +
+                 Greek keywords + ΔΚΝ baseline), enrich_llm,
                  extract (pdfplumber + ET.gr ZIP + furniture strip + tables),
                  masthead (FEK identity gate), segment (full morphology),
                  amend (verb + nested-genitive target resolution -> canonical_id,
@@ -39,13 +40,15 @@ STUB / OPTIONAL: sidecar/pdf_extract (superseded by extract.py); Azure DI table
 ## The hard pieces still open (where accuracy is won)
 1. amend.consolidate_pending — cross-law as-in-force + supersedes/version chain
    (post-pass over Weaviate; the version key MUST include chunk_index — REPAIR_PLAN F1).
-2. enrich.py — domain classifier (train on GLC/Raptarchis47k for domain_dkn).
-Done: extract.py + masthead.py, segment.py (full morphology), amend extraction.
+2. enrich.py — TRAINED GLC/Raptarchis47k classifier (data-gated); the deterministic
+   cited-code + Greek-keyword + ΔΚΝ-baseline signals and the LLM fallback are done.
+Done: extract.py + masthead.py, segment.py (full morphology), amend extraction,
+domain classifier (rules + keywords + LLM).
 
 ## Tests
 `PYTHONPATH=lawgic_pipeline python tests/test_extract.py` (+ `test_segment.py`,
-`test_amend.py`, `test_loader.py`) — self-contained, no pytest. Run after touching any
-stage module. test_loader asserts every property the loader writes exists in the schema.
+`test_amend.py`, `test_loader.py`, `test_enrich.py`) — self-contained, no pytest. Run
+after touching any stage module. test_loader asserts every loader prop exists in the schema.
 
 ## Non-negotiables
 - Insert with .with_tenant("gr") (done in weaviate_io) — never omit.

@@ -47,8 +47,9 @@ only ever point it at `Jun2026*` names.
 
 ## Stage status
 - REAL: config, state, models + canonical IDs + citation parser, normalize, voyage embed,
-  weaviate loader, orchestrator spine, CLI, cited-code domain classifier, LLM layer, LLM
-  enrichment, `pipeline/extract.py` (pdfplumber + ET.gr ZIP + furniture strip + tables),
+  weaviate loader, orchestrator spine, CLI, multi-signal domain classifier (cited-code +
+  Greek keywords + ΔΚΝ baseline), LLM layer, LLM enrichment,
+  `pipeline/extract.py` (pdfplumber + ET.gr ZIP + furniture strip + tables),
   `pipeline/masthead.py` (FEK identity gate), `pipeline/segment.py` (full morphology),
   `pipeline/amend.py` (target resolution -> canonical_id, scope, edges, within-law consolidation).
 - PARTIAL: amend cross-law consolidation + version chain (`consolidate_pending`, post-pass).
@@ -77,7 +78,8 @@ only ever point it at `Jun2026*` names.
 4. ✅ `pipeline/segment.py` — full ΜΕΡΟΣ/ΚΕΦΑΛΑΙΟ/ΤΜΗΜΑ/annex/ordinal morphology + paragraph split.
 5. ✅ `pipeline/amend.py` — target resolution + scope + edges + within-law consolidation.
    STILL TO DO: cross-law consolidation + version chain (`consolidate_pending`, post-pass).
-6. Domain classifier (GLC/Raptarchis47k) for `domain_dkn`.
+6. ◑ Domain classifier — cited-code + Greek-keyword signals + LLM `domain_dkn`/`eurovoc` done;
+   trained GLC/Raptarchis47k model pending the dataset.
 7. ✅ Loader fill-in: `*_stemmed` (Greek Snowball) + document_title/chunk_index/fek_reference/
    publication_date/content_flags; dropped stray `text_normalized`; schema-conformance test.
 8. Package the Windows `.exe` (`npm run dist`).
