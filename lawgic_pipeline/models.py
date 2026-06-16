@@ -38,12 +38,22 @@ def make_provision_id(instrument_id: str, article: str,
 @dataclass
 class AmendmentOp:
     op: str                       # repeals|replaces|adds|amends|modifies|renumbers|consolidates
-    target_id: str
+    target_id: str                # target canonical id (e.g. ν.4174/2013#αρ.5.παρ.2) or law id
     scope: str = "article"        # document|article|paragraph|case|subcase
     effective_date: Optional[str] = None
     new_text: Optional[str] = None
     sub_edit_ordinal: Optional[str] = None
     resolved: bool = True
+    # provenance + denormalized fields for the Amendment edge collection
+    source_canonical_id: str = ""
+    source_law_number: str = ""
+    source_article_no: str = ""
+    target_law_number: str = ""
+    target_article_no: str = ""
+    target_paragraph: str = ""
+    target_case: str = ""
+    change_description: str = ""
+    confidence: float = 1.0
 
 
 @dataclass

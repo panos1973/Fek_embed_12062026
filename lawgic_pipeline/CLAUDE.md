@@ -24,24 +24,26 @@ placeholder canonical_id that would collide.
 
 ## Status of each piece
 REAL & working:  config, state (SQLite), models + canonical IDs + citation parser,
-                 normalize (glyphs/dehyphenation/homoglyph/BM25 fold), voyage embed,
-                 weaviate loader (5 collections, tenant-aware, idempotent UUIDs),
+                 normalize, voyage embed, weaviate loader (tenant-aware, idempotent),
                  orchestrator spine, CLI, cited-code domain classifier, enrich_llm,
                  extract (pdfplumber + ET.gr ZIP + furniture strip + tables),
-                 masthead (FEK identity), segment (full ΜΕΡΟΣ/ΚΕΦΑΛΑΙΟ/annex/ordinal).
-PARTIAL:         amend (verb + quoted-text detection — needs target resolution +
-                 consolidation to text_in_force + version chain).
+                 masthead (FEK identity gate), segment (full morphology),
+                 amend (verb + nested-genitive target resolution -> canonical_id,
+                 scope, denormalized edges, amends_provisions, within-law consolidation).
+PARTIAL:         amend cross-law consolidation + version chain on the TARGET law
+                 (consolidate_pending) — a post-pass; needs the target in Weaviate.
 STUB / OPTIONAL: sidecar/pdf_extract (superseded by extract.py); Azure DI table
                  upgrade is wired but optional (degrades to pdfplumber tables).
 
 ## The hard pieces still open (where accuracy is won)
-1. amend.py    — amendment target resolution + consolidation to as-in-force.
-2. enrich.py   — domain classifier (train on GLC/Raptarchis47k for domain_dkn).
-Done: segment.py (full morphology) and extract.py + masthead.py.
+1. amend.consolidate_pending — cross-law as-in-force + supersedes/version chain
+   (post-pass over Weaviate; the version key MUST include chunk_index — REPAIR_PLAN F1).
+2. enrich.py — domain classifier (train on GLC/Raptarchis47k for domain_dkn).
+Done: extract.py + masthead.py, segment.py (full morphology), amend extraction.
 
 ## Tests
-`PYTHONPATH=lawgic_pipeline python tests/test_extract.py` and `tests/test_segment.py`
-(self-contained; no pytest needed). Run both after touching extract/masthead/segment.
+`PYTHONPATH=lawgic_pipeline python tests/test_extract.py` (+ `test_segment.py`,
+`test_amend.py`) — self-contained, no pytest. Run after touching any stage module.
 
 ## Non-negotiables
 - Insert with .with_tenant("gr") (done in weaviate_io) — never omit.

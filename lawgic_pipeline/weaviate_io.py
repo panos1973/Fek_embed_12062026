@@ -82,6 +82,15 @@ def load_amendments(client, ops: list[AmendmentOp], tenant: str = None):
         for op in ops:
             b.add_object(properties={
                 "action": op.op, "scope": op.scope,
-                "target_canonical_id": op.target_id, "new_text": op.new_text or "",
+                "source_law_number": op.source_law_number,
+                "source_article_number": op.source_article_no,
+                "target_law_number": op.target_law_number,
+                "target_article_number": op.target_article_no,
+                "target_canonical_id": op.target_id,
+                "target_paragraph": op.target_paragraph, "target_case": op.target_case,
+                "change_description": op.change_description, "new_text": op.new_text or "",
                 "effective_date": op.effective_date, "resolved": op.resolved,
-            }, uuid=generate_uuid5(f"amd:{op.op}:{op.target_id}:{op.sub_edit_ordinal}"))
+                "confidence": op.confidence, "extraction_method": "pattern_matching",
+            }, uuid=generate_uuid5(
+                f"amd:{op.source_canonical_id}:{op.op}:{op.target_id}:{op.sub_edit_ordinal}"))
+

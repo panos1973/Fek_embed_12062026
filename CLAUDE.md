@@ -49,8 +49,9 @@ only ever point it at `Jun2026*` names.
 - REAL: config, state, models + canonical IDs + citation parser, normalize, voyage embed,
   weaviate loader, orchestrator spine, CLI, cited-code domain classifier, LLM layer, LLM
   enrichment, `pipeline/extract.py` (pdfplumber + ET.gr ZIP + furniture strip + tables),
-  `pipeline/masthead.py` (FEK identity gate), `pipeline/segment.py` (full morphology).
-- PARTIAL: `pipeline/amend.py` (verb + quoted-text only).
+  `pipeline/masthead.py` (FEK identity gate), `pipeline/segment.py` (full morphology),
+  `pipeline/amend.py` (target resolution -> canonical_id, scope, edges, within-law consolidation).
+- PARTIAL: amend cross-law consolidation + version chain (`consolidate_pending`, post-pass).
 - STUB/OPTIONAL: `sidecar/pdf_extract.py` (superseded by extract.py); Azure DI table upgrade
   is wired but optional (degrades to pdfplumber).
 
@@ -74,7 +75,8 @@ only ever point it at `Jun2026*` names.
    furniture strip + tables (optional Azure DI). Identity gate prevents id collisions.
    STILL TO DO: verify one real FEK end-to-end into the live `Jun2026*` (needs keys + a sample).
 4. ✅ `pipeline/segment.py` — full ΜΕΡΟΣ/ΚΕΦΑΛΑΙΟ/ΤΜΗΜΑ/annex/ordinal morphology + paragraph split.
-5. `pipeline/amend.py` — target resolution + consolidation to `text_in_force` + version chain.
+5. ✅ `pipeline/amend.py` — target resolution + scope + edges + within-law consolidation.
+   STILL TO DO: cross-law consolidation + version chain (`consolidate_pending`, post-pass).
 6. Domain classifier (GLC/Raptarchis47k) for `domain_dkn`.
 7. Loader fill-in: populate `*_stemmed` + display/filter metadata so BM25/retrieval work.
 8. Package the Windows `.exe` (`npm run dist`).
