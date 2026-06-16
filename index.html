@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self';" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <title>Lawgic · FEK Ingest</title>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">§</span>
+      <div>
+        <div class="brand-name">LAWGIC</div>
+        <div class="brand-sub">FEK INGESTION CONSOLE</div>
+      </div>
+    </div>
+    <div class="pill" id="connPill"><span class="dot"></span><span id="connText">idle</span></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="ingest">Ingest</button>
+    <button class="tab" data-tab="review">Review<span class="badge" id="reviewBadge"></span></button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </nav>
+
+  <main>
+    <!-- INGEST -->
+    <section id="ingest" class="view active">
+      <div class="panel">
+        <div class="row">
+          <button class="btn" id="chooseBtn">Choose folder</button>
+          <code class="path" id="folderPath">no folder selected</code>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="startBtn" disabled>Start ingest</button>
+          <button class="btn ghost" id="cancelBtn" disabled>Cancel</button>
+        </div>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <div class="progress-label" id="progressLabel">—</div>
+      </div>
+
+      <div class="counts" id="counts">
+        <div class="chip" data-k="pending"><b>0</b><span>pending</span></div>
+        <div class="chip" data-k="processing"><b>0</b><span>processing</span></div>
+        <div class="chip done" data-k="done"><b>0</b><span>done</span></div>
+        <div class="chip review" data-k="review"><b>0</b><span>review</span></div>
+        <div class="chip error" data-k="error"><b>0</b><span>error</span></div>
+      </div>
+
+      <div class="panel log-panel">
+        <div class="panel-title">Activity</div>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section id="review" class="view">
+      <div class="panel">
+        <div class="row">
+          <button class="btn" id="refreshReview">Refresh queue</button>
+          <button class="btn ghost" id="retryAll">Retry all pending / error</button>
+        </div>
+        <p class="hint">Documents the pipeline could not finish confidently land here for a human to inspect.</p>
+      </div>
+      <div class="panel">
+        <table class="tbl">
+          <thead><tr><th>Document</th><th>Stage</th><th>Reason</th></tr></thead>
+          <tbody id="reviewBody"><tr><td colspan="3" class="empty">— nothing loaded —</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings" class="view">
+      <div class="panel">
+        <div class="panel-title">Pipeline</div>
+        <label>Python executable<input id="pythonPath" placeholder="python" /></label>
+        <label>Core directory (lawgic_pipeline)<input id="coreDir" /></label>
+        <label>State DB path<input id="stateDb" /></label>
+        <label>Jurisdiction (tenant)<input id="jurisdiction" placeholder="gr" /></label>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Summarization &amp; metadata model</div>
+        <label>Model
+          <select id="llmChoice">
+            <option value="anthropic|claude-haiku-4-5">Claude Haiku 4.5 — cheap workhorse ($1/$5)</option>
+            <option value="anthropic|claude-sonnet-4-6">Claude Sonnet 4.6 — heavier ($3/$15)</option>
+            <option value="openai|gpt-4.1">GPT-4.1 ($2/$8)</option>
+            <option value="openai|gpt-4.1-mini">GPT-4.1 mini — cheaper, high volume ($0.40/$1.60)</option>
+            <option value="deepseek|deepseek-v4-flash">DeepSeek V4 Flash — cheapest ($0.14/$0.28)</option>
+            <option value="deepseek|deepseek-v4-pro">DeepSeek V4 Pro ($0.435/$0.87, 75% off)</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" id="llmThinking" />
+          Thinking mode (leave OFF for extraction — slower &amp; costs reasoning tokens)</label>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Credentials <span class="enc" id="encNote"></span></div>
+        <label>Weaviate URL<input id="weaviateUrl" /></label>
+        <label>Weaviate API key<input id="weaviateApiKey" type="password" /></label>
+        <label>Voyage API key<input id="voyageApiKey" type="password" /></label>
+        <label>Azure DI endpoint<input id="diEndpoint" /></label>
+        <label>Azure DI key<input id="diKey" type="password" /></label>
+        <label>Anthropic API key<input id="anthropicKey" type="password" /></label>
+        <label>DeepSeek API key<input id="deepseekKey" type="password" /></label>
+        <label>OpenAI API key<input id="openaiKey" type="password" /></label>
+        <div class="row"><button class="btn primary" id="saveSettings">Save</button>
+          <span class="saved" id="savedNote"></span></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

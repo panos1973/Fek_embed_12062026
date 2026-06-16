@@ -1,0 +1,36 @@
+{
+  "name": "lawgic-fek-ingest",
+  "version": "0.1.0",
+  "description": "Lawgic FEK ingestion — Electron shell over the Python pipeline core",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "author": "Lawgic",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.lawgic.fekingest",
+    "productName": "Lawgic FEK Ingest",
+    "files": ["main.js", "preload.js", "renderer/**/*", "package.json"],
+    "extraResources": [
+      {
+        "from": "../lawgic_pipeline",
+        "to": "lawgic_pipeline",
+        "filter": ["**/*", "!**/__pycache__/**", "!**/*.db"]
+      }
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
