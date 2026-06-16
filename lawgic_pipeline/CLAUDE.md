@@ -24,7 +24,8 @@ placeholder canonical_id that would collide.
 
 ## Status of each piece
 REAL & working:  config, state (SQLite), models + canonical IDs + citation parser,
-                 normalize, voyage embed, weaviate loader (tenant-aware, idempotent),
+                 normalize, voyage embed, weaviate loader (tenant-aware, idempotent,
+                 *_stemmed Greek-Snowball BM25 fields + display/filter metadata),
                  orchestrator spine, CLI, cited-code domain classifier, enrich_llm,
                  extract (pdfplumber + ET.gr ZIP + furniture strip + tables),
                  masthead (FEK identity gate), segment (full morphology),
@@ -43,7 +44,8 @@ Done: extract.py + masthead.py, segment.py (full morphology), amend extraction.
 
 ## Tests
 `PYTHONPATH=lawgic_pipeline python tests/test_extract.py` (+ `test_segment.py`,
-`test_amend.py`) — self-contained, no pytest. Run after touching any stage module.
+`test_amend.py`, `test_loader.py`) — self-contained, no pytest. Run after touching any
+stage module. test_loader asserts every property the loader writes exists in the schema.
 
 ## Non-negotiables
 - Insert with .with_tenant("gr") (done in weaviate_io) — never omit.

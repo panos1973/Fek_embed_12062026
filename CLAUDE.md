@@ -78,15 +78,17 @@ only ever point it at `Jun2026*` names.
 5. ✅ `pipeline/amend.py` — target resolution + scope + edges + within-law consolidation.
    STILL TO DO: cross-law consolidation + version chain (`consolidate_pending`, post-pass).
 6. Domain classifier (GLC/Raptarchis47k) for `domain_dkn`.
-7. Loader fill-in: populate `*_stemmed` + display/filter metadata so BM25/retrieval work.
+7. ✅ Loader fill-in: `*_stemmed` (Greek Snowball) + document_title/chunk_index/fek_reference/
+   publication_date/content_flags; dropped stray `text_normalized`; schema-conformance test.
 8. Package the Windows `.exe` (`npm run dist`).
 
 ## Known risks captured during review (address as the relevant stage lands)
 - **Instrument identity → UUID collisions:** `orchestrator.py` uses a placeholder `ν.0/0`. Until a
   masthead parser sets the real type/number/year, every law's "Άρθρο 1" shares a canonical_id and
   the idempotent UUID makes laws overwrite each other. Pair the masthead parser with extract (step 3).
-- **Stemmed/BM25 fields unpopulated:** loader writes `text_normalized` (not in the flat schema) but not
-  `chunk_text_stemmed` etc. that retrieval queries. Fix in step 7.
+- ✅ **Stemmed/BM25 fields:** loader now writes `chunk_text_stemmed`/`chunk_summary_stemmed`/
+  `*_title_stemmed` (Greek Snowball, `stem.py`) + display/filter metadata, and dropped the stray
+  `text_normalized`. `tests/test_loader.py` asserts every written prop exists in the live schema.
 - **Versioning needs `chunk_index`:** the embedder's `REPAIR_PLAN.md` shows omitting it hid 41% of
   articles from `is_current`. When articles get sub-chunked (step 5), `chunk_index` must be in the key.
 - **Reference, don't assume reuse:** `lawgic-embedder` has no rule-based morphology parser (segment is
