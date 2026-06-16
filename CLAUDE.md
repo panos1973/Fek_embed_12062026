@@ -47,9 +47,12 @@ only ever point it at `Jun2026*` names.
 
 ## Stage status
 - REAL: config, state, models + canonical IDs + citation parser, normalize, voyage embed,
-  weaviate loader, orchestrator spine, CLI, cited-code domain classifier, LLM layer, LLM enrichment.
-- PARTIAL: `pipeline/segment.py` (Άρθρο-only), `pipeline/amend.py` (verb + quoted-text only).
-- STUB: `pipeline/extract.py`, `sidecar/pdf_extract.py`.
+  weaviate loader, orchestrator spine, CLI, cited-code domain classifier, LLM layer, LLM
+  enrichment, `pipeline/extract.py` (pdfplumber + ET.gr ZIP + furniture strip + tables),
+  `pipeline/masthead.py` (FEK identity gate), `pipeline/segment.py` (full morphology).
+- PARTIAL: `pipeline/amend.py` (verb + quoted-text only).
+- STUB/OPTIONAL: `sidecar/pdf_extract.py` (superseded by extract.py); Azure DI table upgrade
+  is wired but optional (degrades to pdfplumber).
 
 ## Non-negotiables (do not change without asking)
 - Every Weaviate read/write uses `.with_tenant("gr")`.
@@ -66,9 +69,11 @@ only ever point it at `Jun2026*` names.
 ## Build order (one item at a time; confirm between each)
 1. ✅ Restore layout + venv + `pip install -r lawgic_pipeline/requirements.txt`; `cli.py status` runs.
 2. Electron: `cd lawgic_electron && npm install && npm start` — app launches, spawns the core, tabs work.
-3. `pipeline/extract.py` (keystone) **+ masthead/identity parser** — pdfplumber text-layer + Azure DI
-   table pages + ET.gr ZIP handling. Verify one real FEK end-to-end into `Jun2026*`.
-4. `pipeline/segment.py` — full ΜΕΡΟΣ/ΚΕΦΑΛΑΙΟ/παράγραφος/annex morphology.
+   (Headless/remote can't open the GUI — visual launch happens on the desktop.)
+3. ✅ `pipeline/extract.py` (keystone) **+ `pipeline/masthead.py`** — pdfplumber + ET.gr ZIP +
+   furniture strip + tables (optional Azure DI). Identity gate prevents id collisions.
+   STILL TO DO: verify one real FEK end-to-end into the live `Jun2026*` (needs keys + a sample).
+4. ✅ `pipeline/segment.py` — full ΜΕΡΟΣ/ΚΕΦΑΛΑΙΟ/ΤΜΗΜΑ/annex/ordinal morphology + paragraph split.
 5. `pipeline/amend.py` — target resolution + consolidation to `text_in_force` + version chain.
 6. Domain classifier (GLC/Raptarchis47k) for `domain_dkn`.
 7. Loader fill-in: populate `*_stemmed` + display/filter metadata so BM25/retrieval work.
